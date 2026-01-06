@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html"> <!-- Fixed: Changed from "#" to "index.html" -->
+                <i class="bi bi-shop"></i> E-Commerce Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html"><i class="bi bi-house"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="customers.html"><i class="bi bi-people"></i> Customers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html"><i class="bi bi-box"></i> Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html"><i class="bi bi-cart"></i> Orders</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3" id="loggedInUser">Guest</span>
+                    <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Quick Stats</h6>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Customers</small>
+                            <h4 id="totalCustomers">0</h4>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Products</small>
+                            <h4 id="totalProducts">0</h4>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Orders</small>
+                            <h4 id="totalOrders">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Welcome to E-Commerce Management System</h5>
+                                <p class="card-text">Manage your customers, products, and orders from this dashboard.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-white bg-info mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Customers</h6>
+                                        <h2 id="dashboardCustomers">0</h2>
+                                    </div>
+                                    <i class="bi bi-people-fill fs-1"></i>
+                                </div>
+                                <a href="customers.html" class="text-white stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-success mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Products</h6>
+                                        <h2 id="dashboardProducts">0</h2>
+                                    </div>
+                                    <i class="bi bi-box-seam-fill fs-1"></i>
+                                </div>
+                                <a href="products.html" class="text-white stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-warning mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Orders</h6>
+                                        <h2 id="dashboardOrders">0</h2>
+                                    </div>
+                                    <i class="bi bi-cart-check-fill fs-1"></i>
+                                </div>
+                                <a href="orders.html" class="text-white stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Recent Orders</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="recentOrdersTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Total</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Orders will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/common.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Load dashboard stats on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadDashboardStats();
+            loadRecentOrders();
+        });
+
+        function loadDashboardStats() {
+            // Fetch and display statistics
+            fetch('http://localhost:8081/customer/getAll')
+                .then(response => response.json())
+                .then(customers => {
+                    document.getElementById('totalCustomers').textContent = customers.length;
+                    document.getElementById('dashboardCustomers').textContent = customers.length;
+                });
+
+            fetch('http://localhost:8081/product/all')
+                .then(response => response.json())
+                .then(products => {
+                    document.getElementById('totalProducts').textContent = products.length;
+                    document.getElementById('dashboardProducts').textContent = products.length;
+                });
+
+            fetch('http://localhost:8081/order/all')
+                .then(response => response.json())
+                .then(orders => {
+                    document.getElementById('totalOrders').textContent = orders.length;
+                    document.getElementById('dashboardOrders').textContent = orders.length;
+                });
+        }
+
+        function loadRecentOrders() {
+            fetch('http://localhost:8081/order/all')
+                .then(response => response.json())
+                .then(orders => {
+                    const tableBody = document.querySelector('#recentOrdersTable tbody');
+                    tableBody.innerHTML = '';
+                    
+                    // Take only last 5 orders
+                    const recentOrders = orders.slice(-5).reverse();
+                    
+                    recentOrders.forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>#${order.id}</td>
+                            <td>${order.customer ? order.customer.name : 'N/A'}</td>
+                            <td>$${order.totalPrice ? order.totalPrice.toFixed(2) : '0.00'}</td>
+                            <td><span class="badge bg-${getStatusColor(order.status)}">${order.status || 'PROCESSING'}</span></td>
+                            <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'DELIVERED': return 'success';
+                case 'DELIVERING': return 'warning';
+                default: return 'secondary';
+            }
+        }
+    </script>
+</body>
+</html>

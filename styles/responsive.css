@@ -1,0 +1,113 @@
+/* Responsive Design Extensions */
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .table th, .table td {
+        padding: 8px 5px;
+    }
+    
+    .modal-dialog {
+        margin: 10px;
+    }
+    
+    .navbar-nav {
+        margin-top: 10px;
+    }
+    
+    .d-sm-none {
+        display: none !important;
+    }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    .container-fluid {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+    .col-md-custom {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+    .col-lg-custom {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+    
+    .modal-lg {
+        max-width: 800px;
+    }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+    .col-xl-custom {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+    
+    .container-fluid {
+        max-width: 1400px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar, .btn, .modal-footer, .no-print {
+        display: none !important;
+    }
+    
+    .container-fluid {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    
+    .card {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+    
+    .table {
+        color: #e0e0e0;
+    }
+    
+    .table th, .table td {
+        border-color: #444;
+    }
+    
+    .form-control, .form-select {
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+}

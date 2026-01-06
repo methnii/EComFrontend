@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-shop"></i> E-Commerce Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="bi bi-house"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="customers.html"><i class="bi bi-people"></i> Customers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html"><i class="bi bi-box"></i> Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="orders.html"><i class="bi bi-cart"></i> Orders</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3" id="loggedInUser">Guest</span>
+                    <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar - Added to match dashboard layout -->
+            <div class="col-lg-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Quick Stats</h6>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Customers</small>
+                            <h4 id="totalCustomers">0</h4>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Products</small>
+                            <h4 id="totalProducts">0</h4>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Orders</small>
+                            <h4 id="totalOrders">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-10">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2>Order Management</h2>
+                            <div>
+                                <button class="btn btn-outline-primary me-2" onclick="exportOrdersToCSV()">
+                                    <i class="bi bi-download"></i> Export CSV
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#placeOrderModal">
+                                    <i class="bi bi-plus-circle"></i> Place New Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Filters -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Filter by Status</label>
+                        <select class="form-select" id="statusFilter" onchange="filterOrders()">
+                            <option value="">All Statuses</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="DELIVERING">Delivering</option>
+                            <option value="DELIVERED">Delivered</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="dateFilter" class="form-label">Filter by Date</label>
+                        <input type="date" class="form-control" id="dateFilter" onchange="filterOrders()">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="searchOrder" class="form-label">Search Orders</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchOrder" placeholder="Search by order ID or customer name...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchOrders()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearFilters()">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="orderTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Total Price</th>
+                                                <th>Status</th>
+                                                <th>Order Date</th>
+                                                <th>Items</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Orders will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="text-muted">
+                                        Showing <span id="ordersCount">0</span> orders
+                                    </div>
+                                    <nav>
+                                        <ul class="pagination mb-0" id="pagination">
+                                            <!-- Pagination will be generated here -->
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Place Order Modal -->
+    <div class="modal fade" id="placeOrderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Place New Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="placeOrderForm">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="orderCustomer" class="form-label">Customer *</label>
+                                <select class="form-select" id="orderCustomer" required>
+                                    <option value="">Select Customer</option>
+                                    <!-- Customers will be populated -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="orderDate" class="form-label">Order Date</label>
+                                <input type="datetime-local" class="form-control" id="orderDate" value="<?php echo date('Y-m-d\TH:i'); ?>">
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Order Items</h5>
+                        <div id="orderItemsContainer">
+                            <div class="order-item card mb-3">
+                                <div class="card-body">
+                                    <div class="row align-items-end">
+                                        <div class="col-md-5">
+                                            <label class="form-label">Product *</label>
+                                            <select class="form-select product-select" onchange="updateProductPrice(this)" required>
+                                                <option value="">Select Product</option>
+                                                <!-- Products will be populated -->
+                                            </select>
+                                            <small class="text-muted product-stock-info"></small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Quantity *</label>
+                                            <input type="number" class="form-control quantity-input" min="1" value="1" 
+                                                   onchange="calculateItemTotal(this)" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Price</label>
+                                            <input type="text" class="form-control price-display" readonly>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-danger mt-4" onclick="removeOrderItem(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary mb-3" onclick="addOrderItem()">
+                            <i class="bi bi-plus"></i> Add Item
+                        </button>
+                        
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5>Order Summary</h5>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <h4 id="orderTotalAmount">$0.00</h4>
+                                        <input type="hidden" id="orderTotalPrice" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Order Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateStatusForm">
+                        <input type="hidden" id="updateOrderId">
+                        <div class="mb-3">
+                            <label for="orderStatusSelect" class="form-label">Select Status</label>
+                            <select class="form-select" id="orderStatusSelect">
+                                <option value="PROCESSING">Processing</option>
+                                <option value="DELIVERING">Delivering</option>
+                                <option value="DELIVERED">Delivered</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmUpdateStatus()">Update Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/order.js"></script>
+    <script>
+        let currentOrders = [];
+        let filteredOrders = [];
+        const itemsPerPage = 10;
+        let currentPage = 1;
+
+        // Debounced search function
+        const debouncedSearch = debounce(() => {
+            searchOrders();
+        }, 300);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadOrders();
+            loadDashboardStats();
+            initOrderModal();
+            
+            // Add event listener for search input
+            document.getElementById('searchOrder').addEventListener('input', debouncedSearch);
+        });
+
+        function loadDashboardStats() {
+            // Fetch and display statistics for sidebar
+            fetch('http://localhost:8081/customer/getAll')
+                .then(response => response.json())
+                .then(customers => {
+                    document.getElementById('totalCustomers').textContent = customers.length;
+                });
+
+            fetch('http://localhost:8081/product/all')
+                .then(response => response.json())
+                .then(products => {
+                    document.getElementById('totalProducts').textContent = products.length;
+                });
+
+            fetch('http://localhost:8081/order/all')
+                .then(response => response.json())
+                .then(orders => {
+                    document.getElementById('totalOrders').textContent = orders.length;
+                });
+        }
+
+        function searchOrders() {
+            const searchTerm = document.getElementById('searchOrder').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            filteredOrders = currentOrders.filter(order => {
+                const matchesSearch = !searchTerm || 
+                    order.id.toString().includes(searchTerm) ||
+                    order.customer?.name?.toLowerCase().includes(searchTerm) ||
+                    order.customer?.email?.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+                
+                const matchesDate = !dateFilter || 
+                    new Date(order.orderDate).toISOString().split('T')[0] === dateFilter;
+                
+                return matchesSearch && matchesStatus && matchesDate;
+            });
+            
+            currentPage = 1;
+            renderOrdersPaginated();
+        }
+
+        function filterOrders() {
+            searchOrders();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchOrder').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filteredOrders = [...currentOrders];
+            currentPage = 1;
+            renderOrdersPaginated();
+        }
+
+        function renderOrdersPaginated() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageOrders = filteredOrders.slice(startIndex, endIndex);
+            
+            renderOrders(pageOrders);
+            updatePagination();
+            updateOrdersCount();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            const paginationElement = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationElement.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+                </li>
+            `;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHTML += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                        </li>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+            
+            // Next button
+            paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+                </li>
+            `;
+            
+            paginationElement.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderOrdersPaginated();
+        }
+
+        function updateOrdersCount() {
+            const countElement = document.getElementById('ordersCount');
+            const start = (currentPage - 1) * itemsPerPage + 1;
+            const end = Math.min(currentPage * itemsPerPage, filteredOrders.length);
+            countElement.textContent = `${start}-${end} of ${filteredOrders.length}`;
+        }
+
+        // Update loadOrders function
+        async function loadOrders() {
+            try {
+                const orders = await fetch('http://localhost:8081/order/all')
+                    .then(response => response.json());
+                
+                currentOrders = orders;
+                filteredOrders = [...orders];
+                renderOrdersPaginated();
+                
+                // Update the sidebar stats for orders count
+                document.getElementById('totalOrders').textContent = orders.length;
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showNotification('Failed to load orders', 'danger');
+            }
+        }
+
+        // Update viewOrderDetails function
+        async function viewOrderDetails(orderId) {
+            try {
+                const order = await fetch(`http://localhost:8081/order/${orderId}`)
+                    .then(response => response.json());
+                
+                const modalContent = document.getElementById('orderDetailsContent');
+                modalContent.innerHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Customer Information</h6>
+                                    <p><strong>Name:</strong> ${order.customer?.name || 'N/A'}</p>
+                                    <p><strong>Email:</strong> ${order.customer?.email || 'N/A'}</p>
+                                    <p><strong>Address:</strong> ${order.customer?.address || 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Order Information</h6>
+                                    <p><strong>Order ID:</strong> #${order.id}</p>
+                                    <p><strong>Order Date:</strong> ${formatDate(order.orderDate)}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-${getStatusColor(order.status)}">
+                                            ${getStatusText(order.status)}
+                                        </span>
+                                    </p>
+                                    <p><strong>Total Price:</strong> $${(order.totalPrice || 0).toFixed(2)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>Order Items</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderItemsDetails">
+                                <!-- Items will be populated here -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Grand Total:</strong></td>
+                                    <td><strong>$${(order.totalPrice || 0).toFixed(2)}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+                
+                // Load order items
+                const itemsBody = document.getElementById('orderItemsDetails');
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.product?.name || 'N/A'}</td>
+                            <td>${item.quantity || 0}</td>
+                            <td>$${((item.price || 0) / (item.quantity || 1)).toFixed(2)}</td>
+                            <td>$${(item.price || 0).toFixed(2)}</td>
+                        `;
+                        itemsBody.appendChild(row);
+                    });
+                } else {
+                    itemsBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No items found</td>
+                        </tr>
+                    `;
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error viewing order details:', error);
+                showNotification('Failed to load order details', 'danger');
+            }
+        }
+
+        function updateOrderStatusPrompt(orderId) {
+            document.getElementById('updateOrderId').value = orderId;
+            const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+            modal.show();
+        }
+
+        async function confirmUpdateStatus() {
+            const orderId = document.getElementById('updateOrderId').value;
+            const status = document.getElementById('orderStatusSelect').value;
+            
+            try {
+                const response = await fetch(`http://localhost:8081/order/update-status/${orderId}?status=${status}`, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    await loadOrders();
+                    showNotification('Order status updated successfully!', 'success');
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                    modal.hide();
+                } else {
+                    throw new Error('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showNotification('Failed to update order status', 'danger');
+            }
+        }
+
+        // Helper functions
+        function getStatusColor(status) {
+            switch(status) {
+                case 'DELIVERED': return 'success';
+                case 'DELIVERING': return 'warning';
+                default: return 'secondary';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'DELIVERED': return 'Delivered';
+                case 'DELIVERING': return 'Delivering';
+                default: return 'Processing';
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>
