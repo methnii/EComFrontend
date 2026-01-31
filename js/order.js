@@ -117,7 +117,7 @@ function renderOrders(orders) {
     });
 }
 
-// View order details - CORRECTED
+// View order details - WITH IMAGES
 async function viewOrderDetails(orderId) {
     try {
         const order = await apiRequest(`/order/${orderId}`);
@@ -216,19 +216,42 @@ async function viewOrderDetails(orderId) {
             </div>
         `;
         
-        // Load order items - CORRECTED
+        // Load order items with images
         const itemsBody = document.getElementById('orderItemsDetails');
         if (items.length > 0) {
+            // Get product details for all items
+            const productIds = items.map(item => item.productId).filter(id => id);
+            
+            // Fetch product details including images
+            const productsWithDetails = await getProductsWithImages(productIds);
+            
             items.forEach(item => {
                 const row = document.createElement('tr');
                 
-                // FIXED: Get quantity correctly
+                // Get quantity and prices
                 const quantity = parseInt(item.quantity) || 1;
                 const itemPrice = parseFloat(item.price) || 0;
                 const unitPrice = quantity > 0 ? (itemPrice / quantity) : 0;
                 
+                // Find product details including image
+                const productDetails = productsWithDetails.find(p => p.id == item.productId);
+                const productName = productDetails?.name || `Product #${item.productId || 'N/A'}`;
+                const productImage = productDetails?.image || productDetails?.imageUrl || 'https://via.placeholder.com/50x50/cccccc/666666?text=No+Image';
+                
                 row.innerHTML = `
-                    <td>Product #${item.productId || 'N/A'}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="${productImage}" 
+                                 alt="${productName}" 
+                                 class="me-3 rounded" 
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                            <div>
+                                <div class="fw-medium">${productName}</div>
+                                ${productDetails?.category ? 
+                                    `<small class="text-muted">${productDetails.category}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
                     <td>${quantity}</td>
                     <td>$${unitPrice.toFixed(2)}</td>
                     <td>$${itemPrice.toFixed(2)}</td>
@@ -249,6 +272,34 @@ async function viewOrderDetails(orderId) {
         orderModal.show();
     } catch (error) {
         handleError(error, 'view order details');
+    }
+}
+
+// Get product details with images
+async function getProductsWithImages(productIds) {
+    try {
+        if (!productIds || productIds.length === 0) return [];
+        
+        // Fetch all products
+        const response = await fetch('http://localhost:8081/product/all');
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const allProducts = await response.json();
+        
+        // Filter products that match our IDs and include image
+        return allProducts.filter(product => 
+            productIds.includes(product.id)
+        ).map(product => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+            image: product.image || product.imageUrl || product.imagePath || null,
+            description: product.description
+        }));
+    } catch (error) {
+        console.error('Error fetching product details:', error);
+        return [];
     }
 }
 
@@ -560,7 +611,8 @@ async function getProductsForDropdown() {
             name: product.name,
             price: product.price,
             stock: product.stock,
-            category: product.category
+            category: product.category,
+            image: product.image || product.imageUrl || null
         }));
     } catch (error) {
         console.error('Error getting products for dropdown:', error);
@@ -568,7 +620,7 @@ async function getProductsForDropdown() {
     }
 }
 
-// Populate product dropdown
+// Populate product dropdown with images
 async function populateProductDropdown(selectElement) {
     try {
         if (!allProductsForOrders || allProductsForOrders.length === 0) {
@@ -580,13 +632,14 @@ async function populateProductDropdown(selectElement) {
             selectElement.remove(1);
         }
         
-        // Add product options
+        // Add product options with image data attributes
         allProductsForOrders.forEach(product => {
             const option = document.createElement('option');
             option.value = product.id;
             option.textContent = `${product.name} - $${product.price.toFixed(2)}`;
             option.setAttribute('data-stock', product.stock);
             option.setAttribute('data-price', product.price);
+            option.setAttribute('data-image', product.image || '');
             selectElement.appendChild(option);
         });
     } catch (error) {
