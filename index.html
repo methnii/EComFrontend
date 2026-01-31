@@ -207,7 +207,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>#${order.id}</td>
-                            <td>${order.customer ? order.customer.name : 'N/A'}</td>
+                            <td>${order.customerName || 'N/A'}</td>
                             <td>$${order.totalPrice ? order.totalPrice.toFixed(2) : '0.00'}</td>
                             <td><span class="badge bg-${getStatusColor(order.status)}">${order.status || 'PROCESSING'}</span></td>
                             <td>${new Date(order.orderDate).toLocaleDateString()}</td>

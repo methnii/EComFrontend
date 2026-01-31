@@ -89,11 +89,10 @@ function renderOrders(orders) {
             }
             
             // Get item count
-            const itemCount = order.items ? order.items.length : 0;
             
             row.innerHTML = `
                 <td><strong>#${order.id || 'N/A'}</strong></td>
-                <td>${customerName}</td>
+                <td>${order.customerName}</td>
                 <td>$${(order.totalPrice || 0).toFixed(2)}</td>
                 <td>
                     <span class="badge bg-${getStatusColor(order.status)}">
@@ -101,7 +100,7 @@ function renderOrders(orders) {
                     </span>
                 </td>
                 <td>${formattedDate}</td>
-                <td>${itemCount}</td>
+                <td>${order.items ? order.items.length : 0}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-primary" onclick="viewOrderDetails(${order.id})">
@@ -164,7 +163,7 @@ async function viewOrderDetails(orderId) {
                     <div class="card">
                         <div class="card-body">
                             <h6>Customer Information</h6>
-                            <p><strong>Name:</strong> ${order.customer?.name || 'N/A'}</p>
+                            <p><strong>Name:</strong> ${order.Blob || 'N/A'}</p>
                             <p><strong>Email:</strong> ${order.customer?.email || 'N/A'}</p>
                             <p><strong>Address:</strong> ${order.customer?.address || 'N/A'}</p>
                         </div>
