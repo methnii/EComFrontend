@@ -51,8 +51,6 @@ function renderOrders(orders) {
         return;
     }
     
-    console.log('Rendering', orders.length, 'orders');
-    
     // Sort orders by date (newest first)
     orders.sort((a, b) => {
         const dateA = new Date(a.orderDate || a.createdDate || 0);
@@ -62,19 +60,10 @@ function renderOrders(orders) {
     
     orders.forEach(order => {
         try {
-            console.log('Processing order:', order);
-            
             const row = document.createElement('tr');
             
-            // Get customer name (handle different structures)
-            let customerName = 'N/A';
-            if (order.customer) {
-                if (typeof order.customer === 'object') {
-                    customerName = order.customer.name || order.customer.fullName || 'N/A';
-                } else if (typeof order.customer === 'string') {
-                    customerName = order.customer;
-                }
-            }
+            // Get customer name
+            let customerName = order.customerName || order.customer?.name || 'N/A';
             
             // Format date
             const orderDate = order.orderDate || order.createdDate;
@@ -88,11 +77,18 @@ function renderOrders(orders) {
                 }
             }
             
-            // Get item count
+            // Get item count - CORRECTED
+            let itemCount = 0;
+            if (order.items && Array.isArray(order.items)) {
+                // Calculate TOTAL items (sum of quantities)
+                itemCount = order.items.reduce((total, item) => {
+                    return total + (parseInt(item.quantity) || 0);
+                }, 0);
+            }
             
             row.innerHTML = `
                 <td><strong>#${order.id || 'N/A'}</strong></td>
-                <td>${order.customerName}</td>
+                <td>${customerName}</td>
                 <td>$${(order.totalPrice || 0).toFixed(2)}</td>
                 <td>
                     <span class="badge bg-${getStatusColor(order.status)}">
@@ -100,7 +96,7 @@ function renderOrders(orders) {
                     </span>
                 </td>
                 <td>${formattedDate}</td>
-                <td>${order.items ? order.items.length : 0}</td>
+                <td>${itemCount}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-primary" onclick="viewOrderDetails(${order.id})">
@@ -119,11 +115,9 @@ function renderOrders(orders) {
             console.error('Error rendering order:', order, error);
         }
     });
-    
-    console.log('Orders rendered to table');
 }
 
-// View order details
+// View order details - CORRECTED
 async function viewOrderDetails(orderId) {
     try {
         const order = await apiRequest(`/order/${orderId}`);
@@ -155,6 +149,18 @@ async function viewOrderDetails(orderId) {
             document.body.appendChild(modal);
         }
         
+        // Get customer name
+        let customerName = order.customerName || order.customer?.name || 'N/A';
+        
+        // Get items
+        let items = order.items || [];
+        
+        // Calculate total items
+        let totalItems = 0;
+        if (items.length > 0) {
+            totalItems = items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+        }
+        
         // Populate order details
         const content = document.getElementById('orderDetailsContent');
         content.innerHTML = `
@@ -163,7 +169,7 @@ async function viewOrderDetails(orderId) {
                     <div class="card">
                         <div class="card-body">
                             <h6>Customer Information</h6>
-                            <p><strong>Name:</strong> ${order.Blob || 'N/A'}</p>
+                            <p><strong>Name:</strong> ${customerName}</p>
                             <p><strong>Email:</strong> ${order.customer?.email || 'N/A'}</p>
                             <p><strong>Address:</strong> ${order.customer?.address || 'N/A'}</p>
                         </div>
@@ -186,7 +192,7 @@ async function viewOrderDetails(orderId) {
                 </div>
             </div>
             
-            <h5>Order Items</h5>
+            <h5>Order Items (${totalItems} items)</h5>
             <div class="table-responsive">
                 <table class="table table-sm">
                     <thead>
@@ -210,16 +216,22 @@ async function viewOrderDetails(orderId) {
             </div>
         `;
         
-        // Load order items
+        // Load order items - CORRECTED
         const itemsBody = document.getElementById('orderItemsDetails');
-        if (order.items && order.items.length > 0) {
-            order.items.forEach(item => {
+        if (items.length > 0) {
+            items.forEach(item => {
                 const row = document.createElement('tr');
+                
+                // FIXED: Get quantity correctly
+                const quantity = parseInt(item.quantity) || 1;
+                const itemPrice = parseFloat(item.price) || 0;
+                const unitPrice = quantity > 0 ? (itemPrice / quantity) : 0;
+                
                 row.innerHTML = `
-                    <td>${item.product?.name || 'N/A'}</td>
-                    <td>${item.quantity || 0}</td>
-                    <td>$${((item.price || 0) / (item.quantity || 1)).toFixed(2)}</td>
-                    <td>$${(item.price || 0).toFixed(2)}</td>
+                    <td>Product #${item.productId || 'N/A'}</td>
+                    <td>${quantity}</td>
+                    <td>$${unitPrice.toFixed(2)}</td>
+                    <td>$${itemPrice.toFixed(2)}</td>
                 `;
                 itemsBody.appendChild(row);
             });
@@ -377,8 +389,6 @@ async function placeOrder() {
             orderDate: orderDate,
             items: orderItems
         };
-        
-        console.log('Placing order:', order); // Debug log
         
         const response = await apiRequest('/order/place', {
             method: 'POST',
@@ -668,14 +678,24 @@ function exportOrdersToCSV() {
     }
     
     const headers = ['Order ID', 'Customer', 'Total Price', 'Status', 'Order Date', 'Items Count'];
-    const rows = allOrders.map(order => [
-        order.id,
-        order.customer?.name || '',
-        order.totalPrice || 0,
-        getStatusText(order.status),
-        formatDate(order.orderDate),
-        order.items ? order.items.length : 0
-    ]);
+    const rows = allOrders.map(order => {
+        // Calculate total items correctly
+        let itemCount = 0;
+        if (order.items && Array.isArray(order.items)) {
+            itemCount = order.items.reduce((total, item) => {
+                return total + (parseInt(item.quantity) || 0);
+            }, 0);
+        }
+        
+        return [
+            order.id,
+            order.customerName || order.customer?.name || '',
+            order.totalPrice || 0,
+            getStatusText(order.status),
+            formatDate(order.orderDate),
+            itemCount
+        ];
+    });
     
     const csvContent = [
         headers.join(','),
